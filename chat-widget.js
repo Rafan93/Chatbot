@@ -1,15 +1,17 @@
 // Chat Widget Script
 (function() {
-    // Create and inject styles
+    // Definimos las variables CSS personalizadas que USARÁ el widget
+    // Esto asegura que los colores de tu config.html se apliquen.
     const styles = `
         .n8n-chat-widget {
-        --chat--color-primary: #FF8C42;
-        --chat--color-secondary: #FF6B35;
-        --chat--color-accent: #FFA366;
-        --chat--color-background: #FAFAFA;
-        --chat--color-font: #2C2C2C;
-        font-family: 'Inter', 'Geist Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-    }
+            /* Las variables globales que se establecen en JS */
+            --chat--color-primary: var(--n8n-chat-primary-color, #FF8C42); /* Usar el color del HTML o fallback */
+            --chat--color-secondary: var(--n8n-chat-secondary-color, #FF6B35); /* Usar el color del HTML o fallback */
+            --chat--color-background: var(--n8n-chat-background-color, #FAFAFA);
+            --chat--color-font: var(--n8n-chat-font-color, #2C2C2C);
+            --chat--border-color: rgba(0, 0, 0, 0.1); /* Color de borde para un look más limpio */
+            font-family: 'Inter', 'Geist Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
 
         .n8n-chat-widget .chat-container {
             position: fixed;
@@ -21,8 +23,8 @@
             height: 600px;
             background: var(--chat--color-background);
             border-radius: 12px;
-            box-shadow: 0 8px 32px rgba(133, 79, 255, 0.15);
-            border: 1px solid rgba(133, 79, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15); /* Sombra más estándar */
+            border: 1px solid var(--chat--border-color);
             overflow: hidden;
             font-family: inherit;
         }
@@ -42,8 +44,9 @@
             display: flex;
             align-items: center;
             gap: 12px;
-            border-bottom: 1px solid rgba(133, 79, 255, 0.1);
+            border-bottom: 1px solid var(--chat--border-color);
             position: relative;
+             background-color: var(--chat--color-background);
         }
 
         .n8n-chat-widget .close-button {
@@ -71,6 +74,7 @@
         .n8n-chat-widget .brand-header img {
             width: 32px;
             height: 32px;
+             border-radius: 50%; /* Asegura que el logo se vea circular si es necesario */
         }
 
         .n8n-chat-widget .brand-header span {
@@ -78,8 +82,20 @@
             font-weight: 500;
             color: var(--chat--color-font);
         }
+        
+        /* Oculta la cabecera en la vista de inicio */
+        .n8n-chat-widget .new-conversation-view .brand-header {
+            display: flex; 
+        }
+
+        /* Oculta la cabecera en la vista de chat si está activa */
+        .n8n-chat-widget .chat-interface.active + .new-conversation-view .brand-header {
+            display: none;
+        }
+
 
         .n8n-chat-widget .new-conversation {
+            /* Asegura que el brand-header se vea en la vista de inicio */
             position: absolute;
             top: 50%;
             left: 50%;
@@ -88,6 +104,9 @@
             text-align: center;
             width: 100%;
             max-width: 300px;
+             /* Nuevo: ajusta el contenedor del 'new-conversation' para que no solape la cabecera */
+             top: calc(50% + 40px); 
+             transform: translate(-50%, -50%);
         }
 
         .n8n-chat-widget .welcome-text {
@@ -105,7 +124,7 @@
             gap: 8px;
             width: 100%;
             padding: 16px 24px;
-            background: linear-gradient(135deg, var(--chat--color-primary) 0%, var(--chat--color-secondary) 100%);
+            background: linear-gradient(135deg, #FF8C42 0%, #FF6B35 100%);
             color: white;
             border: none;
             border-radius: 8px;
@@ -138,10 +157,27 @@
             flex-direction: column;
             height: 100%;
         }
+        
+        /* Nuevo: Cabecera visible por defecto, solo se oculta el div .new-conversation-view */
+        .n8n-chat-widget .new-conversation-view {
+            display: block; /* Muestra el contenedor de la vista de inicio */
+            height: 100%;
+        }
+        
+        /* Corrección: Oculta la vista de inicio cuando la interfaz de chat está activa */
+        .n8n-chat-widget .chat-interface.active + .new-conversation-view {
+            display: none;
+        }
 
         .n8n-chat-widget .chat-interface.active {
             display: flex;
+            height: 100%;
         }
+        
+        /* La cabecera SIEMPRE visible dentro del chat-interface */
+        .n8n-chat-widget .chat-interface .brand-header {
+            display: flex;
+        }
 
         .n8n-chat-widget .chat-messages {
             flex: 1;
@@ -150,6 +186,7 @@
             background: var(--chat--color-background);
             display: flex;
             flex-direction: column;
+            line-height: 1.5; /* Mejora la legibilidad */
         }
 
         .n8n-chat-widget .chat-message {
@@ -166,42 +203,55 @@
             background: linear-gradient(135deg, var(--chat--color-primary) 0%, var(--chat--color-secondary) 100%);
             color: white;
             align-self: flex-end;
-            box-shadow: 0 4px 12px rgba(133, 79, 255, 0.2);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             border: none;
         }
+        
+        /* Estilos para listas en mensajes bot */
+        .n8n-chat-widget .chat-message.bot ul,
+        .n8n-chat-widget .chat-message.bot ol {
+            padding-left: 20px;
+            margin: 10px 0;
+        }
 
         .n8n-chat-widget .chat-message.bot {
-            background: var(--chat--color-background);
-            border: 1px solid rgba(133, 79, 255, 0.2);
+            background: #f2f2f2; /* Color de fondo ligeramente gris para el bot */
+            border: 1px solid var(--chat--border-color);
             color: var(--chat--color-font);
             align-self: flex-start;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
             white-space: normal;
         }
+        
+        /* CSS para la animación de puntos suspensivos */
+        .n8n-chat-widget .thinking-dots {
+            font-weight: 500;
+            color: var(--chat--color-font);
+            opacity: 0.8;
+        }
         
-        /* 🚨 NUEVO CSS PARA LA ANIMACIÓN DE PUNTOS SUSPENSIVOS 🚨 */
         .n8n-chat-widget .thinking-dots::after {
-            content: '.';
+            content: ' .';
             animation: dots 1s steps(5, end) infinite;
         }
-        
+        
         @keyframes dots {
             0%, 20% {
-                content: '.';
+                content: ' .';
             }
             40% {
-                content: '..';
+                content: ' ..';
             }
             60%, 100% {
-                content: '...';
+                content: ' ...';
             }
         }
-        /* 🚨 FIN DEL NUEVO CSS 🚨 */
+        /* FIN DEL CSS DE ANIMACIÓN */
 
         .n8n-chat-widget .chat-input {
             padding: 16px;
             background: var(--chat--color-background);
-            border-top: 1px solid rgba(133, 79, 255, 0.1);
+            border-top: 1px solid var(--chat--border-color);
             display: flex;
             gap: 8px;
         }
@@ -209,14 +259,20 @@
         .n8n-chat-widget .chat-input textarea {
             flex: 1;
             padding: 12px;
-            border: 1px solid rgba(133, 79, 255, 0.2);
+            border: 1px solid var(--chat--border-color);
             border-radius: 8px;
             background: var(--chat--color-background);
             color: var(--chat--color-font);
             resize: none;
             font-family: inherit;
             font-size: 14px;
+             transition: border-color 0.2s;
         }
+        
+        .n8n-chat-widget .chat-input textarea:focus {
+            border-color: var(--chat--color-primary);
+            outline: none;
+        }
 
         .n8n-chat-widget .chat-input textarea::placeholder {
             color: var(--chat--color-font);
@@ -250,7 +306,7 @@
             color: white;
             border: none;
             cursor: pointer;
-            box-shadow: 0 4px 12px rgba(133, 79, 255, 0.3);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
             z-index: 999;
             transition: transform 0.3s;
             display: flex;
@@ -295,8 +351,8 @@
             responseTimeText: ''
         },
         style: {
-            primaryColor: '',
-            secondaryColor: '',
+            primaryColor: '#f28a10', // Valor por defecto si no se configura
+            secondaryColor: '#1a1a1a', // Valor por defecto si no se configura
             position: 'right',
             backgroundColor: '#ffffff',
             fontColor: '#333333'
@@ -319,7 +375,8 @@
 
     const widgetContainer = document.createElement('div');
     widgetContainer.className = 'n8n-chat-widget';
-
+    
+    // 🚨 CORRECCIÓN CLAVE: Establecer las variables CSS que SÍ se usan en el CSS 🚨
     widgetContainer.style.setProperty('--n8n-chat-primary-color', config.style.primaryColor);
     widgetContainer.style.setProperty('--n8n-chat-secondary-color', config.style.secondaryColor);
     widgetContainer.style.setProperty('--n8n-chat-background-color', config.style.backgroundColor);
@@ -328,31 +385,34 @@
     const chatContainer = document.createElement('div');
     chatContainer.className = `chat-container${config.style.position === 'left' ? ' position-left' : ''}`;
 
-    const newConversationHTML = `
-        <div class="brand-header">
+    // 🚨 NUEVO: Separar la vista de inicio y la cabecera 🚨
+    const brandHeaderHTML = `
+        <div class="brand-header">
             <img src="${config.branding.logo}" alt="${config.branding.name}">
             <span>${config.branding.name}</span>
             <button class="close-button">×</button>
         </div>
-        <div class="new-conversation">
-            <h2 class="welcome-text">${config.branding.welcomeText}</h2>
-            <button class="new-chat-btn">
-                <svg class="message-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                    <path fill="currentColor" d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H5.2L4 17.2V4h16v12z"/>
-                </svg>
-                Envíanos un mensaje
-            </button>
-            <p class="response-text">${config.branding.responseTimeText}</p>
-        </div>
+    `;
+
+    const newConversationViewHTML = `
+        <div class="new-conversation-view">
+            ${brandHeaderHTML}
+            <div class="new-conversation">
+                <h2 class="welcome-text">${config.branding.welcomeText}</h2>
+                <button class="new-chat-btn">
+                    <svg class="message-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H5.2L4 17.2V4h16v12z"/>
+                    </svg>
+                    Envíanos un mensaje
+                </button>
+                <p class="response-text">${config.branding.responseTimeText}</p>
+            </div>
+        </div>
     `;
 
     const chatInterfaceHTML = `
         <div class="chat-interface">
-            <div class="brand-header">
-                <img src="${config.branding.logo}" alt="${config.branding.name}">
-                <span>${config.branding.name}</span>
-                <button class="close-button">×</button>
-            </div>
+            ${brandHeaderHTML}
             <div class="chat-messages"></div>
             <div class="chat-input">
                 <textarea placeholder="Escribe tu mensaje aquí..." rows="1"></textarea>
@@ -361,7 +421,7 @@
         </div>
     `;
 
-    chatContainer.innerHTML = newConversationHTML + chatInterfaceHTML;
+    chatContainer.innerHTML = chatInterfaceHTML + newConversationViewHTML;
 
     const toggleButton = document.createElement('button');
     toggleButton.className = `chat-toggle${config.style.position === 'left' ? ' position-left' : ''}`;
@@ -375,24 +435,34 @@
     document.body.appendChild(widgetContainer);
 
     const newChatBtn = chatContainer.querySelector('.new-chat-btn');
+    const newConversationView = chatContainer.querySelector('.new-conversation-view');
     const chatInterface = chatContainer.querySelector('.chat-interface');
     const messagesContainer = chatContainer.querySelector('.chat-messages');
     const textarea = chatContainer.querySelector('textarea');
-    const sendButton = chatContainer.querySelector('button[type="submit"]');
+    const sendButton = chatContainer.querySelector('.chat-input button[type="submit"]'); // Selector más específico
 
     // 🚨 ELEMENTO DE ANIMACIÓN DEL BOT 🚨
     let thinkingMessageDiv = null;
 
     function generateUUID() { return crypto.randomUUID(); }
 
-    // ✅ FUNCIÓN PARA RENDERIZAR MARKDOWN BÁSICO
+    // ✅ FUNCIÓN PARA RENDERIZAR MARKDOWN MÁS ROBUSTO
     function parseMarkdown(text) {
-        return text
+        if (!text) return '';
+        
+        let html = text
             .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>") // negritas
-            .replace(/\*(.*?)\*/g, "<em>$1</em>"); // cursivas
+            .replace(/\*(.*?)\*/g, "<em>$1</em>") // cursivas
+            .replace(/^- (.*)/gm, '<li>$1</li>') // Listas no ordenadas (elementos)
+            .replace(/(\n<li>.*<\/li>)+/g, '<ul>$&</ul>'); // Listas no ordenadas (contenedor)
+        
+        // Manejo de saltos de línea (importante para que no se vea todo en una línea)
+        html = html.replace(/\n/g, "<br>");
+        
+        return html;
     }
-    
-    // 🚨 NUEVA FUNCIÓN: Muestra la animación de "pensando" 🚨
+    
+    // 🚨 NUEVA FUNCIÓN: Muestra la animación de "pensando" 🚨
     function showThinkingAnimation() {
         thinkingMessageDiv = document.createElement('div');
         thinkingMessageDiv.className = 'chat-message bot thinking-dots';
@@ -418,6 +488,13 @@
             route: config.webhook.route,
             metadata: { userId: "" }
         }];
+        
+        // 🚨 Transición de vistas 🚨
+        newConversationView.style.display = 'none';
+        chatInterface.classList.add('active');
+        messagesContainer.innerHTML = ''; // Limpia mensajes anteriores
+
+        showThinkingAnimation();
 
         try {
             const response = await fetch(config.webhook.url, {
@@ -427,21 +504,25 @@
             });
 
             const responseData = await response.json();
-            chatContainer.querySelector('.brand-header').style.display = 'none';
-            chatContainer.querySelector('.new-conversation').style.display = 'none';
-            chatInterface.classList.add('active');
+            
+            hideThinkingAnimation();
 
             const botMessageDiv = document.createElement('div');
             botMessageDiv.className = 'chat-message bot';
 
             botMessageDiv.innerHTML = parseMarkdown(
                 (Array.isArray(responseData) ? responseData[0].output : responseData.output)
-            ).replace(/\n/g, "<br>");
+            ); // Se eliminó .replace(/\n/g, "<br>") ya que lo hace parseMarkdown
 
             messagesContainer.appendChild(botMessageDiv);
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         } catch (error) {
-            console.error('Error:', error);
+            console.error('Error al iniciar conversación:', error);
+            hideThinkingAnimation();
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'chat-message bot';
+            errorDiv.textContent = 'Lo siento, no pude iniciar la conversación. Por favor, inténtalo de nuevo más tarde.';
+            messagesContainer.appendChild(errorDiv);
         }
     }
 
@@ -459,8 +540,8 @@
         userMessageDiv.textContent = message;
         messagesContainer.appendChild(userMessageDiv);
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        
-        // 🚨 Mostrar la animación de "pensando" justo antes de la llamada a la API 🚨
+        
+        // Mostrar la animación de "pensando" justo antes de la llamada a la API
         showThinkingAnimation();
 
         try {
@@ -471,23 +552,28 @@
             });
 
             const data = await response.json();
-            
-            // 🚨 Ocultar la animación antes de mostrar la respuesta real 🚨
-            hideThinkingAnimation();
+            
+            // Ocultar la animación antes de mostrar la respuesta real
+            hideThinkingAnimation();
 
             const botMessageDiv = document.createElement('div');
             botMessageDiv.className = 'chat-message bot';
 
             botMessageDiv.innerHTML = parseMarkdown(
                 (Array.isArray(data) ? data[0].output : data.output)
-            ).replace(/\n/g, "<br>");
+            );
 
             messagesContainer.appendChild(botMessageDiv);
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         } catch (error) {
-            console.error('Error:', error);
-            // 🚨 Asegúrate de ocultarla incluso si hay un error 🚨
-            hideThinkingAnimation();
+            console.error('Error al enviar mensaje:', error);
+            // Asegúrate de ocultarla incluso si hay un error
+            hideThinkingAnimation();
+             const errorDiv = document.createElement('div');
+             errorDiv.className = 'chat-message bot';
+             errorDiv.textContent = 'Hubo un error al recibir la respuesta.';
+             messagesContainer.appendChild(errorDiv);
+             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
     }
 
@@ -514,10 +600,29 @@
 
     toggleButton.addEventListener('click', () => {
         chatContainer.classList.toggle('open');
+        if (chatContainer.classList.contains('open') && currentSessionId === '') {
+            // Asegura que la vista de inicio se muestre cuando se abre sin sesión activa
+            newConversationView.style.display = 'block';
+            chatInterface.classList.remove('active');
+        } else if (!chatContainer.classList.contains('open')) {
+            // Si se cierra, asegura que la vista de inicio se restablezca (opcional)
+             chatInterface.classList.remove('active');
+             newConversationView.style.display = 'block';
+        }
     });
+    
+    // Función para manejar el cierre y restablecer la vista (por si se necesita)
+    function closeChat() {
+        chatContainer.classList.remove('open');
+        // Si quieres que al cerrar se muestre de nuevo la pantalla de "Nuevo Mensaje", activa estas líneas:
+        // currentSessionId = ''; 
+        // messagesContainer.innerHTML = '';
+        // chatInterface.classList.remove('active');
+        // newConversationView.style.display = 'block';
+    }
 
     const closeButtons = chatContainer.querySelectorAll('.close-button');
     closeButtons.forEach(button =>
-        button.addEventListener('click', () => chatContainer.classList.remove('open'))
+        button.addEventListener('click', closeChat)
     );
 })();
