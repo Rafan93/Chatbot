@@ -20,7 +20,7 @@
             display: none;
             width: 380px;
             height: 600px;
-            background: var(--chat--color-background);
+            background: #FFA366;
             border-radius: 12px;
             box-shadow: 0 8px 32px rgba(133, 79, 255, 0.15);
             border: 1px solid rgba(133, 79, 255, 0.2);
