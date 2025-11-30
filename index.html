@@ -1,99 +1,13 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Chatbot EnTuPunto – Demo Oficial</title>
-
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background: #faf9f6;
-            color: #2f2f2f;
-        }
-
-        /* Sección de encabezado */
-        header {
-            background: linear-gradient(135deg, #ffa22b, #ff8a00);
-            padding: 60px 20px;
-            text-align: center;
-            color: #ffffff;
-            box-shadow: 0 3px 12px rgba(0,0,0,0.15);
-        }
-
-        header h1 {
-            margin: 0;
-            font-size: 36px;
-            font-weight: 700;
-        }
-
-        header p {
-            margin-top: 10px;
-            font-size: 17px;
-            opacity: 0.95;
-        }
-
-        /* Contenido principal */
-        main {
-            max-width: 850px;
-            margin: 40px auto;
-            text-align: center;
-            padding: 0 20px;
-        }
-
-        .info-box {
-            background: #ffffff;
-            padding: 25px 30px;
-            border-radius: 14px;
-            box-shadow: 0 6px 18px rgba(0,0,0,0.1);
-            border-left: 5px solid #ffa22b;
-            display: inline-block;
-            text-align: left;
-        }
-
-        .info-box h2 {
-            margin-top: 0;
-            color: #ff8a00;
-        }
-
-        footer {
-            text-align: center;
-            padding: 30px 10px;
-            font-size: 14px;
-            color: #777;
-        }
-    </style>
+    <title>Probando Chatbot EnTuPunto</title>
 </head>
-
 <body>
 
-    <header>
-        <h1>Chatbot EnTuPunto</h1>
-        <p>Demostración interactiva del asistente virtual corporativo.</p>
-    </header>
-
-    <main>
-        <div class="info-box">
-            <h2>Información</h2>
-            <p>
-                El chatbot aparecerá automáticamente en la parte inferior derecha,
-                siguiendo la configuración visual y funcional definida para la marca EnTuPunto.
-            </p>
-            <p>
-                Esta página está diseñada para validar la integración, la estética y el comportamiento
-                del widget dentro de un entorno limpio y profesional.
-            </p>
-        </div>
-    </main>
-
-    <footer>
-        © EnTuPunto — Prueba Técnica del Asistente IA
-    </footer>
-
-    <!-- Configuración del Widget -->
+    <!-- Widget Configuration -->
     <script>
         window.ChatWidgetConfig = {
             webhook: {
@@ -103,16 +17,16 @@
             branding: {
                 logo: 'https://raw.githubusercontent.com/alexrosado5/Chatbot/main/avatar%20copy.png',
                 name: 'EnTuPunto',
-                welcomeText: 'Hola, ¿en qué puedo ayudarte hoy?',
-                responseTimeText: 'Solemos responder bastante rápido...',
+                welcomeText: 'Hola! Como puedo ayudarte hoy?',
+                responseTimeText: 'Solemos responder bastante rapido...',
                 poweredBy: {
                     text: '',
                     link: ''
                 }
             },
             style: {
-                primaryColor: '#ffa22b',    // Taronja corporatiu
-                secondaryColor: '#1a1a1a',
+                primaryColor: '#ffa22b',
+                secondaryColor: '#000000',
                 position: 'right',
                 backgroundColor: '#ffffff',
                 fontColor: '#333333'
@@ -120,7 +34,7 @@
         };
     </script>
 
-    <!-- Carga del widget personalizado -->
+    <!-- Carga tu widget personalizado (SIN powered by) -->
     <script src="./chat-widget.js"></script>
 
 </body>
